@@ -6,23 +6,22 @@ import java.net.*;
 
 public class Main {
 
-    private static ArrayList<ClientHandler> clients = new ArrayList<>();
-    private static UserDatabase userDatabase = new UserDatabase();
     
 
     public static void main(String[] args) {
-        try (
-                ServerSocket serverSocket = new ServerSocket(3000)) {
-            
+        ArrayList<ClientHandler> clients = new ArrayList();
+        UserDatabase userDatabase = new UserDatabase();
+        
+        try {
+            ServerSocket serverSocket = new ServerSocket(3000);
+
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream()); 
-                ClientHandler clientHandler = new ClientHandler(clientSocket,userDatabase,clients,in,out);
-                clients.add(clientHandler);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, userDatabase, clients);
                 clientHandler.start();
+                clients.add(clientHandler);
             }
-        } catch(IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
