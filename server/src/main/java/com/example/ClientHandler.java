@@ -72,10 +72,14 @@ public class ClientHandler extends Thread {
     }
 
     private void signIn() throws IOException {
+        String richiesta = in.readLine();
+        if (richiesta.equals("si?")) {
+            
+        
         boolean continua = true;
         out.writeBytes("siC?" + "\n");
         
-
+        
         while (continua) {
             String username = in.readLine();
             String password = in.readLine();
@@ -89,6 +93,7 @@ public class ClientHandler extends Thread {
                 }
             
         }
+    }
         
     }
 
@@ -99,7 +104,7 @@ public class ClientHandler extends Thread {
             if (message.equalsIgnoreCase("UserList")) {
                 sendUserList();
             } else if (message.startsWith("@")) {
-                handlePrivateMessage(message);
+                //handlePrivateMessage(message);
             } else if (message.startsWith("--GLOBAL")) {
                 handleGlobalMessage(message);
             }
@@ -111,7 +116,7 @@ public class ClientHandler extends Thread {
         out.writeBytes("UL" + "\n");
         out.writeBytes(userDatabase.getUsernames());
     }
-
+    /*
     private void handlePrivateMessage(String message) throws IOException {
         String[] parts = message.split("", 2);
         String targetUser = parts[0].substring(1);
@@ -132,7 +137,7 @@ public class ClientHandler extends Thread {
             out.writeBytes("pc!" + "\n");
         }
     }
-
+ */
     private void handleGlobalMessage(String message) throws IOException {
         String globalMessage = message.substring(9);
         for (ClientHandler client : clients) {

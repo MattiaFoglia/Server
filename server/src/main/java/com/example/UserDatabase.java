@@ -19,7 +19,7 @@ public class UserDatabase {
         return usernames.contains(username);
     }
 
-    public void addUser(String username, String password){
+    synchronized public void addUser(String username, String password){
         usernames.add(username);
         passwords.add(password);
     }
