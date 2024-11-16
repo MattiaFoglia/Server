@@ -34,10 +34,12 @@ public class ClientHandler extends Thread {
                     signUp();
                     signIn();
                 } else if ("si?".equals(loginChoice)) {
-                    signIn();
-                }
-                handleChat();
+                    directSignIn();
+                }    
             }
+            handleChat();
+            
+            
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,24 +99,57 @@ public class ClientHandler extends Thread {
         
     }
 
-    private void handleChat() throws IOException {
-        while (true) {
-            String message = in.readLine();
+    //
 
-            if (message.equalsIgnoreCase("UserList")) {
-                sendUserList();
-            } else if (message.startsWith("@")) {
-                //handlePrivateMessage(message);
-            } else if (message.startsWith("--GLOBAL")) {
-                handleGlobalMessage(message);
-            }
-
+    private void directSignIn() throws IOException {
+            
+        
+        boolean continua = true;
+        out.writeBytes("siC?" + "\n");
+        
+        
+        while (continua) {
+            String username = in.readLine();
+            String password = in.readLine();
+           
+                if (userDatabase.authenticateUser(username, password)) {
+                    out.writeBytes("siS" + "\n");
+                    continua = false;
+                } else {
+                    out.writeBytes("si!" + "\n");
+                    
+                }
+            
         }
+    
+        
     }
 
-    private void sendUserList() throws IOException {
-        out.writeBytes("UL" + "\n");
-        out.writeBytes(userDatabase.getUsernames());
+    synchronized private void handleChat(){
+        try{
+            while (true) {
+                String message = in.readLine();
+                if (message.equalsIgnoreCase("UserList")) {
+                    sendUserList();
+                } else if (message.equals("@?")) {
+                    //handlePrivateMessage(message);
+                } else if (message.startsWith("--GLOBAL")) {
+                    handleGlobalMessage(message);
+                }
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        
+    }
+
+    synchronized private void sendUserList() {
+        try{
+            out.writeBytes(userDatabase.getUsernames() + "\n");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        
     }
     /*
     private void handlePrivateMessage(String message) throws IOException {
