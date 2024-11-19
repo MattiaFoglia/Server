@@ -11,7 +11,7 @@ public class UserDatabase {
     
 
     public UserDatabase() {
-        this.usernames = new ArrayList();
+         this.usernames = new ArrayList();
         this.passwords = new ArrayList();
     }
 
@@ -45,8 +45,9 @@ public class UserDatabase {
     public String getUsernames(){
         String lista = "";
         for(int i = 0; i < usernames.size(); i++){
-            lista += i+1 + ") " + usernames.get(i) + "\n";
+            lista += i+1 + ") " + usernames.get(i) + ", ";
         }
+        System.out.println(lista);
         return lista;
     }
 }

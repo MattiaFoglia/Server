@@ -13,7 +13,8 @@ public class ClientHandler extends Thread {
     BufferedReader in;
     DataOutputStream out;
 
-    public ClientHandler(Socket socket, UserDatabase userDatabase, ArrayList<ClientHandler> clients) throws IOException {
+    public ClientHandler(Socket socket, UserDatabase userDatabase, ArrayList<ClientHandler> clients)
+            throws IOException {
         this.socket = socket;
         this.userDatabase = userDatabase;
         this.clients = clients;
@@ -25,21 +26,18 @@ public class ClientHandler extends Thread {
     public void run() {
 
         try {
-            String signal = in.readLine();
-            if ("s".equals(signal)) {
-                out.writeBytes("l?" + "\n");
-                String loginChoice = in.readLine();
 
-                if ("su?".equals(loginChoice)) {
-                    signUp();
-                    signIn();
-                } else if ("si?".equals(loginChoice)) {
-                    directSignIn();
-                }    
+            String loginChoice = in.readLine();
+
+            if ("su?".equals(loginChoice)) {
+                signUp();
+                signIn();
+            } else if ("si?".equals(loginChoice)) {
+                directSignIn();
             }
+
             handleChat();
-            
-            
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -64,115 +62,114 @@ public class ClientHandler extends Thread {
             String password = in.readLine();
             if (userDatabase.authenticateUser(username)) {
                 out.writeBytes("su!" + "\n");
-            } else{
+            } else {
                 userDatabase.addUser(username, password);
                 out.writeBytes("suS" + "\n");
                 continua = false;
             }
         }
-        
+
     }
 
     private void signIn() throws IOException {
         String richiesta = in.readLine();
         if (richiesta.equals("si?")) {
-            
-        
-        boolean continua = true;
-        out.writeBytes("siC?" + "\n");
-        
-        
-        while (continua) {
-            String username = in.readLine();
-            String password = in.readLine();
-           
+
+            boolean continua = true;
+            out.writeBytes("siC?" + "\n");
+
+            while (continua) {
+                String username = in.readLine();
+                String password = in.readLine();
+
                 if (userDatabase.authenticateUser(username, password)) {
                     out.writeBytes("siS" + "\n");
                     continua = false;
                 } else {
                     out.writeBytes("si!" + "\n");
-                    
+
                 }
-            
+
+            }
         }
-    }
-        
+
     }
 
     //
 
     private void directSignIn() throws IOException {
-            
-        
+
         boolean continua = true;
         out.writeBytes("siC?" + "\n");
-        
-        
+
         while (continua) {
             String username = in.readLine();
             String password = in.readLine();
-           
-                if (userDatabase.authenticateUser(username, password)) {
-                    out.writeBytes("siS" + "\n");
-                    continua = false;
-                } else {
-                    out.writeBytes("si!" + "\n");
-                    
-                }
-            
+
+            if (userDatabase.authenticateUser(username, password)) {
+                out.writeBytes("siS" + "\n");
+
+                continua = false;
+            } else {
+                out.writeBytes("si!" + "\n");
+
+            }
+
         }
-    
-        
+
     }
 
-    synchronized private void handleChat(){
-        try{
+    synchronized private void handleChat() {
+        try {
             while (true) {
                 String message = in.readLine();
+
                 if (message.equalsIgnoreCase("UserList")) {
                     sendUserList();
-                } else if (message.equals("@?")) {
-                    //handlePrivateMessage(message);
-                } else if (message.startsWith("--GLOBAL")) {
+                } else if (message.equals("@")) {
+                    // handlePrivateMessage(message);
+                } else if (message.startsWith("GLOBAL")) {
                     handleGlobalMessage(message);
                 }
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
     }
 
     synchronized private void sendUserList() {
-        try{
+        try {
+            out.writeBytes("UL" + "\n");
             out.writeBytes(userDatabase.getUsernames() + "\n");
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
     }
+
     /*
-    private void handlePrivateMessage(String message) throws IOException {
-        String[] parts = message.split("", 2);
-        String targetUser = parts[0].substring(1);
-        String privateMessage = parts[1];
-
-        ClientHandler targetClient = null;
-        for (ClientHandler client : clients) {
-            if (client.username.equals(targetUser)) {
-                targetClient = client;
-                break;
-            }
-        }
-
-        if (targetClient != null) {
-            targetClient.out.writeBytes("@" + username + ": " + privateMessage + "\n");
-
-        } else {
-            out.writeBytes("pc!" + "\n");
-        }
-    }
- */
+     * private void handlePrivateMessage(String message) throws IOException {
+     * String[] parts = message.split("", 2);
+     * String targetUser = parts[0].substring(1);
+     * String privateMessage = parts[1];
+     * 
+     * ClientHandler targetClient = null;
+     * for (ClientHandler client : clients) {
+     * if (client.username.equals(targetUser)) {
+     * targetClient = client;
+     * break;
+     * }
+     * }
+     * 
+     * if (targetClient != null) {
+     * targetClient.out.writeBytes("@" + username + ": " + privateMessage + "\n");
+     * 
+     * } else {
+     * out.writeBytes("pc!" + "\n");
+     * }
+     * }
+     */
     private void handleGlobalMessage(String message) throws IOException {
         String globalMessage = message.substring(9);
         for (ClientHandler client : clients) {

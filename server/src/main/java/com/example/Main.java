@@ -18,8 +18,8 @@ public class Main {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 ClientHandler clientHandler = new ClientHandler(clientSocket, userDatabase, clients);
-                clientHandler.start();
                 clients.add(clientHandler);
+                clientHandler.start();
             }
         } catch (IOException e) {
             e.printStackTrace();
