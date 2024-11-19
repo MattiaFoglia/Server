@@ -22,6 +22,10 @@ public class ClientHandler extends Thread {
         this.out = new DataOutputStream(socket.getOutputStream());
     }
 
+    public void sendMessage(String msg) throws IOException{
+        out.writeBytes(msg + "\n");
+    }
+
     @Override
     public void run() {
 
@@ -121,16 +125,44 @@ public class ClientHandler extends Thread {
 
     synchronized private void handleChat() {
         try {
-            while (true) {
+            boolean continua = true;
+            while (continua) {
                 String message = in.readLine();
+                switch (message) {
+                    case "UserList":
+                        sendUserList();
+                        break;
 
+                    case"@":
+                        String privateMessage = in.readLine();
+                        String[] parts = privateMessage.split(" ");
+                        String user = parts[0];
+                        String text = parts[1];
+                        clients.get(userDatabase.findIndexUser(user)).sendMessage("PRIV");
+                        clients.get(userDatabase.findIndexUser(user)).sendMessage(text);
+
+
+
+                        break;
+
+                    case "exit":
+                        String username = in.readLine();
+                        clients.remove(userDatabase.findIndexUserAndRemove(username));
+                        continua = false;
+                        break;
+                
+                    default:
+                        break;
+                }
+                /*
                 if (message.equalsIgnoreCase("UserList")) {
                     sendUserList();
                 } else if (message.equals("@")) {
                     // handlePrivateMessage(message);
                 } else if (message.startsWith("GLOBAL")) {
                     handleGlobalMessage(message);
-                }
+                } else if ()
+                */
             }
         } catch (Exception e) {
             e.printStackTrace();

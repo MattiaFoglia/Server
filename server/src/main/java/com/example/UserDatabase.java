@@ -45,9 +45,25 @@ public class UserDatabase {
     public String getUsernames(){
         String lista = "";
         for(int i = 0; i < usernames.size(); i++){
-            lista += i+1 + ") " + usernames.get(i) + ", ";
+            lista += i+1 + ") " + usernames.get(i) + " ";
         }
-        System.out.println(lista);
         return lista;
+    }
+
+    public int findIndexUser(String username){
+        for(int i = 0; i < usernames.size(); i++){
+            if(username.equals(usernames.get(i))){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public int findIndexUserAndRemove(String username){
+        int index;
+        index = findIndexUser(username);
+        usernames.remove(index);
+        passwords.remove(index);
+        return index;
     }
 }
