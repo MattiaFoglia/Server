@@ -39,7 +39,6 @@ public class ClientHandler extends Thread {
             } else if ("si?".equals(loginChoice)) {
                 directSignIn();
             }
-
             handleChat();
 
         } catch (IOException e) {
@@ -125,6 +124,10 @@ public class ClientHandler extends Thread {
 
     synchronized private void handleChat() {
         try {
+            String userSender = "";
+            String privateMessage ="";
+            String globalMessage = "";
+            String[] parts;
             boolean continua = true;
             while (continua) {
                 String message = in.readLine();
@@ -134,20 +137,41 @@ public class ClientHandler extends Thread {
                         break;
 
                     case"@":
-                        String privateMessage = in.readLine();
-                        String[] parts = privateMessage.split(" ");
+                        userSender = in.readLine();
+                        privateMessage = in.readLine();
+                        parts = privateMessage.split("-");
                         String user = parts[0];
                         String text = parts[1];
-                        clients.get(userDatabase.findIndexUser(user)).sendMessage("PRIV");
-                        clients.get(userDatabase.findIndexUser(user)).sendMessage(text);
+                        
+                        int indexUserReceiver = userDatabase.findIndexUser(user);
+                        if(userSender.equals(user)){
+                            out.writeBytes("!" + "\n");
+                        } else{
+                            clients.get(indexUserReceiver).sendMessage("PRIV");
+                            clients.get(indexUserReceiver).sendMessage("(Privato)"+ userSender + ": " + text);
+                        }
+                        break;
 
-
-
+                    case "GLOBAL":
+                        userSender = in.readLine();
+                        globalMessage = in.readLine();
+                        int indexUserSender = userDatabase.findIndexUser(userSender);
+                        for(int i = 0; i < clients.size(); i++){
+                            if (i != indexUserSender) {
+                                clients.get(i).sendMessage("GB");
+                                clients.get(i).sendMessage("(Globale)"+ userSender + ": " + globalMessage);
+                            }
+                        }
                         break;
 
                     case "exit":
                         String username = in.readLine();
                         clients.remove(userDatabase.findIndexUserAndRemove(username));
+                        for(int i = 0; i < clients.size(); i++){
+                                clients.get(i).sendMessage("GB");
+                                clients.get(i).sendMessage(userSender + " ha abbandonato la chat");
+                            
+                        }
                         continua = false;
                         break;
                 
