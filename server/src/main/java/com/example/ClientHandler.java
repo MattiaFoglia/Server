@@ -44,11 +44,7 @@ public class ClientHandler extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*
-         * if(username != null){
-         * clients.remove(this);
-         * }
-         */
+
         try {
             socket.close();
         } catch (IOException e) {
@@ -72,18 +68,20 @@ public class ClientHandler extends Thread {
             }
         }
 
+
     }
 
     private void signIn() throws IOException {
         String richiesta = in.readLine();
         if (richiesta.equals("si?")) {
-
+            String username = "";
+            String password = "";
             boolean continua = true;
             out.writeBytes("siC?" + "\n");
 
             while (continua) {
-                String username = in.readLine();
-                String password = in.readLine();
+                username = in.readLine();
+                password = in.readLine();
 
                 if (userDatabase.authenticateUser(username, password)) {
                     out.writeBytes("siS" + "\n");
@@ -94,6 +92,13 @@ public class ClientHandler extends Thread {
                 }
 
             }
+            int indexUserSender = userDatabase.findIndexUser(username);
+            for(int i = 0; i < clients.size(); i++){
+                if (i != indexUserSender) {
+                    clients.get(i).sendMessage("GB");
+                    clients.get(i).sendMessage(username + " e' entrato nella chat");
+                }
+            }
         }
 
     }
@@ -103,11 +108,13 @@ public class ClientHandler extends Thread {
     private void directSignIn() throws IOException {
 
         boolean continua = true;
+        String username = "";
+        String password = "";
         out.writeBytes("siC?" + "\n");
 
         while (continua) {
-            String username = in.readLine();
-            String password = in.readLine();
+            username = in.readLine();
+            password = in.readLine();
 
             if (userDatabase.authenticateUser(username, password)) {
                 out.writeBytes("siS" + "\n");
@@ -118,6 +125,13 @@ public class ClientHandler extends Thread {
 
             }
 
+            int indexUserSender = userDatabase.findIndexUser(username);
+            for(int i = 0; i < clients.size(); i++){
+                if (i != indexUserSender) {
+                    clients.get(i).sendMessage("GB");
+                    clients.get(i).sendMessage(username + " e' entrato nella chat");
+                }
+            }
         }
 
     }
@@ -165,8 +179,8 @@ public class ClientHandler extends Thread {
                         break;
 
                     case "exit":
-                        String username = in.readLine();
-                        clients.remove(userDatabase.findIndexUserAndRemove(username));
+                        userSender = in.readLine();
+                        clients.remove(userDatabase.findIndexUserAndRemove(userSender));
                         for(int i = 0; i < clients.size(); i++){
                                 clients.get(i).sendMessage("GB");
                                 clients.get(i).sendMessage(userSender + " ha abbandonato la chat");
@@ -178,15 +192,6 @@ public class ClientHandler extends Thread {
                     default:
                         break;
                 }
-                /*
-                if (message.equalsIgnoreCase("UserList")) {
-                    sendUserList();
-                } else if (message.equals("@")) {
-                    // handlePrivateMessage(message);
-                } else if (message.startsWith("GLOBAL")) {
-                    handleGlobalMessage(message);
-                } else if ()
-                */
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -203,36 +208,4 @@ public class ClientHandler extends Thread {
         }
 
     }
-
-    /*
-     * private void handlePrivateMessage(String message) throws IOException {
-     * String[] parts = message.split("", 2);
-     * String targetUser = parts[0].substring(1);
-     * String privateMessage = parts[1];
-     * 
-     * ClientHandler targetClient = null;
-     * for (ClientHandler client : clients) {
-     * if (client.username.equals(targetUser)) {
-     * targetClient = client;
-     * break;
-     * }
-     * }
-     * 
-     * if (targetClient != null) {
-     * targetClient.out.writeBytes("@" + username + ": " + privateMessage + "\n");
-     * 
-     * } else {
-     * out.writeBytes("pc!" + "\n");
-     * }
-     * }
-     */
-    private void handleGlobalMessage(String message) throws IOException {
-        String globalMessage = message.substring(9);
-        for (ClientHandler client : clients) {
-            if (client != this) {
-                client.out.writeBytes("--GLOBAL" + ": " + globalMessage + "\n");
-            }
-        }
-    }
-
 }
