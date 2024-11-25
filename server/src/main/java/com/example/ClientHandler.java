@@ -30,15 +30,7 @@ public class ClientHandler extends Thread {
     public void run() {
 
         try {
-
-            String loginChoice = in.readLine();
-
-            if ("su?".equals(loginChoice)) {
-                signUp();
-                signIn();
-            } else if ("si?".equals(loginChoice)) {
-                directSignIn();
-            }
+            signIn();
             handleChat();
 
         } catch (IOException e) {
@@ -53,85 +45,34 @@ public class ClientHandler extends Thread {
 
     }
 
-    private void signUp() throws IOException {
-        boolean continua = true;
-        out.writeBytes("suC?" + "\n");
-        while (continua) {
-            String username = in.readLine();
-            String password = in.readLine();
-            if (userDatabase.authenticateUser(username)) {
-                out.writeBytes("su!" + "\n");
-            } else {
-                userDatabase.addUser(username, password);
-                out.writeBytes("suS" + "\n");
-                continua = false;
-            }
-        }
-
-
-    }
-
     private void signIn() throws IOException {
-        String richiesta = in.readLine();
-        if (richiesta.equals("si?")) {
-            String username = "";
-            String password = "";
-            boolean continua = true;
-            out.writeBytes("siC?" + "\n");
-
-            while (continua) {
-                username = in.readLine();
-                password = in.readLine();
-
-                if (userDatabase.authenticateUser(username, password)) {
-                    out.writeBytes("siS" + "\n");
-                    continua = false;
-                } else {
-                    out.writeBytes("si!" + "\n");
-
-                }
-
-            }
-            int indexUserSender = userDatabase.findIndexUser(username);
-            for(int i = 0; i < clients.size(); i++){
-                if (i != indexUserSender) {
-                    clients.get(i).sendMessage("GB");
-                    clients.get(i).sendMessage(username + " e' entrato nella chat");
-                }
-            }
-        }
-
-    }
-
-    //
-
-    private void directSignIn() throws IOException {
 
         boolean continua = true;
         String username = "";
-        String password = "";
-        out.writeBytes("siC?" + "\n");
 
         while (continua) {
             username = in.readLine();
-            password = in.readLine();
 
-            if (userDatabase.authenticateUser(username, password)) {
+            if (!userDatabase.authenticateUser(username)) {
                 out.writeBytes("siS" + "\n");
-
+                userDatabase.addUser(username);
+                int indexUserSender = userDatabase.findIndexUser(username);
+                for(int i = 0; i < clients.size(); i++){
+                    if (i != indexUserSender) {
+                        clients.get(i).sendMessage("JL");
+                        clients.get(i).sendMessage(username);
+                        clients.get(i).sendMessage(" e' entrato nella chat");
+                    }
+                }
                 continua = false;
             } else {
                 out.writeBytes("si!" + "\n");
 
             }
 
-            int indexUserSender = userDatabase.findIndexUser(username);
-            for(int i = 0; i < clients.size(); i++){
-                if (i != indexUserSender) {
-                    clients.get(i).sendMessage("GB");
-                    clients.get(i).sendMessage(username + " e' entrato nella chat");
-                }
-            }
+
+
+            
         }
 
     }
@@ -158,11 +99,16 @@ public class ClientHandler extends Thread {
                         String text = parts[1];
                         
                         int indexUserReceiver = userDatabase.findIndexUser(user);
+                        if (indexUserReceiver == -1) {
+                            out.writeBytes("!" + "\n");
+                            break;
+                        }
                         if(userSender.equals(user)){
                             out.writeBytes("!" + "\n");
                         } else{
-                            clients.get(indexUserReceiver).sendMessage("PRIV");
-                            clients.get(indexUserReceiver).sendMessage("(Privato)"+ userSender + ": " + text);
+                            clients.get(indexUserReceiver).sendMessage("PRIVATE");
+                            clients.get(indexUserReceiver).sendMessage(userSender);
+                            clients.get(indexUserReceiver).sendMessage(text);
                         }
                         break;
 
@@ -173,7 +119,8 @@ public class ClientHandler extends Thread {
                         for(int i = 0; i < clients.size(); i++){
                             if (i != indexUserSender) {
                                 clients.get(i).sendMessage("GB");
-                                clients.get(i).sendMessage("(Globale)"+ userSender + ": " + globalMessage);
+                                clients.get(i).sendMessage(userSender);
+                                clients.get(i).sendMessage(globalMessage);
                             }
                         }
                         break;
@@ -182,9 +129,9 @@ public class ClientHandler extends Thread {
                         userSender = in.readLine();
                         clients.remove(userDatabase.findIndexUserAndRemove(userSender));
                         for(int i = 0; i < clients.size(); i++){
-                                clients.get(i).sendMessage("GB");
-                                clients.get(i).sendMessage(userSender + " ha abbandonato la chat");
-                            
+                                clients.get(i).sendMessage("JL");
+                                clients.get(i).sendMessage(userSender);
+                                clients.get(i).sendMessage(" ha abbandonato la chat");
                         }
                         continua = false;
                         break;
